@@ -1,16 +1,94 @@
-# React + Vite
+# 🚀 KaamFlow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+KaamFlow is a modern workforce and task management platform designed to streamline employee operations, attendance tracking, and project workflows.
 
-Currently, two official plugins are available:
+Built with a scalable architecture using React + Supabase, KaamFlow provides a clean, role-based system for Managers and Employees to collaborate efficiently.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🔐 Authentication & Role Management
+- Secure login/signup with role selection (Manager / Employee)
+- Protected routes with session-based access control
+- Role-based dashboards
 
-## Expanding the ESLint configuration
+### 👤 Employee Management
+- Structured employee profiles (CNIC, phone, address, role)
+- Auto-generated Employee IDs (e.g., VR EMP 1, 3D EMP 2)
+- Department-based classification (VR, 3D, Illustration, etc.)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🧑‍💼 Manager Controls
+- View all employees
+- Monitor attendance
+- Send notifications
+- Manage task workflows (extendable)
+
+### 📅 Attendance System
+- Daily check-in / check-out
+- Status tracking (Present, Late, Absent, Leave)
+- Timezone optimized for Asia/Karachi
+
+### 🔔 Notification System
+- Manager-to-employee communication
+- Read/unread tracking
+- Real-time ready architecture
+
+### 📊 Task & Workflow Management
+- Assign tasks with deadlines and priorities
+- Track progress and revisions
+- Submission and review system
+
+### 🎨 Modern UI/UX
+- Glassmorphism design system
+- Collapsible sidebar with hover-expand
+- Clean dashboard experience inspired by modern SaaS tools
+
+---
+
+## 🏗️ Tech Stack
+
+- **Frontend:** React + Vite  
+- **Backend:** Supabase (Auth, Database, Storage, RLS)  
+- **Hosting:** AWS S3 + CloudFront  
+- **Database:** PostgreSQL (via Supabase)  
+
+---
+
+## 🔐 Security
+
+- Row Level Security (RLS) enforced at database level
+- Role-based data access
+- Secure environment configuration
+
+---
+
+## 🌍 Deployment
+
+- Production-ready deployment using AWS
+- Custom domain support
+- HTTPS enabled
+
+---
+
+## 📈 Future Enhancements
+
+- Analytics dashboard (employee performance, productivity)
+- Gantt charts / task timelines
+- Real-time notifications
+- Chat system
+- Approval workflows
+- Performance scoring
+
+---
+
+## 🧠 Vision
+
+Muhammad Arsalan 
+arsalanch336@gmail.com
+whatsapp +923082791393
+---
+
+## 📌 Author
+
+Developed as a scalable SaaS-ready system with a focus on clean architecture, performance, and modern UI/UX.
