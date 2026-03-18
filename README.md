@@ -95,5 +95,6 @@ whatsapp +923082791393
 ---
 
 
-<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/deda3d25-b8b1-4af9-9b2a-9b5a6cad8cea" />
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/91bb2a52-b72d-4efc-929a-fb30149cc1b5" />
+
 
