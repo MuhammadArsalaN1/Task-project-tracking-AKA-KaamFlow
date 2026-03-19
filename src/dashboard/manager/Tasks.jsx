@@ -1,8 +1,9 @@
+// ✅ MERGED TASKS COMPONENT WITH GLOBAL SEARCH + CLEAN TABLE + PAYMENT FEATURES
+
 import { useEffect, useState, Fragment, useContext, useRef } from "react";
 import Sidebar from "../../components/ui/Sidebar";
 import {
   deleteTask,
-  updateTask,
   cancelTask,
   reassignTask
 } from "../../services/taskService";
@@ -23,6 +24,7 @@ export default function Tasks() {
   const { user } = useContext(AuthContext);
 
   const [tasks, setTasks] = useState([]);
+  const [search, setSearch] = useState(""); // ✅ GLOBAL SEARCH
   const [expandedRow, setExpandedRow] = useState(null);
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
@@ -34,9 +36,8 @@ export default function Tasks() {
 
   const chatEndRef = useRef(null);
 
-  // ===============================
-  // REALTIME
-  // ===============================
+  const SIDEBAR_WIDTH = 260;
+
   useEffect(() => {
     if (!user?.uid) return;
 
@@ -65,16 +66,10 @@ export default function Tasks() {
     return () => unsubscribe();
   }, [user]);
 
-  // ===============================
-  // AUTO SCROLL CHAT
-  // ===============================
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [tasks, expandedRow]);
 
-  // ===============================
-  // HELPERS
-  // ===============================
   const getPrice = (task) =>
     task.finalPrice ?? task.counter_price ?? task.price ?? 0;
 
@@ -126,19 +121,23 @@ export default function Tasks() {
     return "Pending";
   };
 
-  // ===============================
-  // GROUPING
-  // ===============================
-  const groupedTasks = tasks.reduce((acc, task) => {
+  // ✅ GLOBAL SEARCH FILTER
+  const filteredTasks = tasks.filter((task) => {
+    const q = search.toLowerCase();
+    return (
+      task.project_id?.toLowerCase().includes(q) ||
+      task.title?.toLowerCase().includes(q)
+    );
+  });
+
+  // ✅ GROUP AFTER SEARCH
+  const groupedTasks = filteredTasks.reduce((acc, task) => {
     const cat = getCategory(task);
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(task);
     return acc;
   }, {});
 
-  // ===============================
-  // COMMENT (CHAT SEND)
-  // ===============================
   const handleComment = async (taskId) => {
     const text = commentInputs[taskId];
     if (!text) return;
@@ -154,19 +153,14 @@ export default function Tasks() {
     setCommentInputs({ ...commentInputs, [taskId]: "" });
   };
 
-  // ===============================
-  // NEGOTIATION UI
-  // ===============================
   const renderNegotiation = (task) => (
     <div style={{ fontSize: "13px" }}>
       <div>Base: PKR {task.price || 0}</div>
-
       {task.counter_price && (
         <div style={{ color: "#b45309" }}>
           Counter: PKR {task.counter_price}
         </div>
       )}
-
       {task.finalPrice && (
         <div style={{ color: "#16a34a", fontWeight: "bold" }}>
           Final: PKR {task.finalPrice}
@@ -175,9 +169,6 @@ export default function Tasks() {
     </div>
   );
 
-  // ===============================
-  // ACTIONS (UNCHANGED)
-  // ===============================
   const handleAction = async (action, task) => {
     if (!action) return;
 
@@ -193,7 +184,6 @@ export default function Tasks() {
           }
           break;
 
-        case "approve":
         case "approveNegotiation":
           await updateDoc(doc(db, "tasks", task.id), {
             finalPrice: task.counter_price ?? task.price,
@@ -263,9 +253,6 @@ export default function Tasks() {
     }
   };
 
-  // ===============================
-  // LOAD EMPLOYEES
-  // ===============================
   const loadEmployees = async (department) => {
     const q = query(
       collection(db, "users"),
@@ -297,19 +284,34 @@ export default function Tasks() {
     setShowReassignModal(false);
   };
 
-  // ===============================
-  // UI
-  // ===============================
   return (
-    <div style={{ display: "flex" }}>
+    <div>
       <Sidebar role="manager" />
 
-      <div style={{ flex: 1, padding: "24px" }}>
+      <div
+        style={{
+          marginLeft: SIDEBAR_WIDTH,
+          padding: "24px"
+        }}
+      >
         <h2>Task Management</h2>
+
+        {/* ✅ GLOBAL SEARCH UI */}
+        <input
+          placeholder="Search by Project ID or Title..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            padding: "10px",
+            width: "300px",
+            marginBottom: "20px",
+            borderRadius: "8px",
+            border: "1px solid #ddd"
+          }}
+        />
 
         {Object.keys(groupedTasks).map((category) => (
           <div key={category} style={{ marginBottom: 20 }}>
-
             <div
               style={groupHeader}
               onClick={() =>
@@ -319,164 +321,163 @@ export default function Tasks() {
                 })
               }
             >
-              <h3>{category} ({groupedTasks[category].length})</h3>
+              <h3>
+                {category} ({groupedTasks[category].length})
+              </h3>
               <span>{collapsedGroups[category] ? "▼" : "▲"}</span>
             </div>
 
             {!collapsedGroups[category] && (
-              <table style={table}>
-                <thead>
-                  <tr>
-                    <th>Project</th>
-                    <th>Title</th>
-                    <th>Assigned</th>
-                    <th>Dept</th>
-                    <th>Negotiation</th>
-                    <th>Total</th>
-                    <th>Paid</th>
-                    <th>Remaining</th>
-                    <th>Payment</th>
-                    <th>Progress</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+              <div style={tableWrapper}>
+                <table style={table}>
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Title</th>
+                      <th>Assigned</th>
+                      <th>Dept</th>
+                      <th>Negotiation</th>
+                      <th>Total</th>
+                      <th>Paid</th>
+                      <th>Remaining</th>
+                      <th>Payment</th>
+                      <th>Progress</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
 
-                <tbody>
-                  {groupedTasks[category].map((task) => {
-                    const isOpen = expandedRow === task.id;
-                    const paymentStatus = getPaymentStatus(task);
-                    const progress = getTaskProgressStatus(task);
+                  <tbody>
+                    {groupedTasks[category].map((task) => {
+                      const isOpen = expandedRow === task.id;
+                      const paymentStatus = getPaymentStatus(task);
+                      const progress = getTaskProgressStatus(task);
 
-                    return (
-                      <Fragment key={task.id}>
-                        <tr
-                          style={row}
-                          onClick={() =>
-                            setExpandedRow(isOpen ? null : task.id)
-                          }
-                        >
-                          <td>{task.project_id}</td>
-                          <td>{task.title}</td>
-                          <td>{task.assignedToName}</td>
-                          <td>{task.department}</td>
+                      return (
+                        <Fragment key={task.id}>
+                          <tr
+                            style={row}
+                            onClick={() =>
+                              setExpandedRow(isOpen ? null : task.id)
+                            }
+                          >
+                            <td>{task.project_id}</td>
+                            <td>{task.title}</td>
+                            <td>{task.assignedToName}</td>
+                            <td>{task.department}</td>
+                            <td>{renderNegotiation(task)}</td>
+                            <td>PKR {getPrice(task)}</td>
+                            <td>PKR {getTotalPaid(task)}</td>
+                            <td>PKR {getRemaining(task)}</td>
 
-                          <td>{renderNegotiation(task)}</td>
+                            <td>
+                              <span style={{ background: paymentStatus.bg, color: paymentStatus.color, padding: "4px 8px", borderRadius: "6px" }}>
+                                {paymentStatus.text}
+                              </span>
+                            </td>
 
-                          <td>PKR {getPrice(task)}</td>
-                          <td>PKR {getTotalPaid(task)}</td>
-                          <td>PKR {getRemaining(task)}</td>
+                            <td>
+                              <span style={{ background: statusStyleMap[progress]?.bg, color: statusStyleMap[progress]?.color, padding: "4px 8px", borderRadius: "6px" }}>
+                                {progress}
+                              </span>
+                            </td>
 
-                          <td>
-                            <span style={{
-                              background: paymentStatus.bg,
-                              color: paymentStatus.color,
-                              padding: "4px 8px",
-                              borderRadius: "6px"
-                            }}>
-                              {paymentStatus.text}
-                            </span>
-                          </td>
-
-                          <td>
-                            <span style={{
-                              background: statusStyleMap[progress]?.bg,
-                              color: statusStyleMap[progress]?.color,
-                              padding: "4px 8px",
-                              borderRadius: "6px"
-                            }}>
-                              {progress}
-                            </span>
-                          </td>
-
-                          <td>
-                            <select
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                handleAction(e.target.value, task);
-                                e.target.value = "";
-                              }}
-                            >
-                              <option value="">Actions</option>
-                              <option value="counter">Send Counter</option>
-                              <option value="approve">Approve (Old)</option>
-                              <option value="approveNegotiation">Approve Negotiation</option>
-                              <option value="approveDelivery">Approve Delivery</option>
-                              <option value="revision">Request Revision</option>
-                              <option value="payment">Add Payment</option>
-                              <option value="reassign">Reassign</option>
-                              <option value="cancel">Cancel</option>
-                              <option value="delete">Delete</option>
-                            </select>
-                          </td>
-                        </tr>
-
-                        {isOpen && (
-                          <tr>
-                            <td colSpan="11">
-                              <div style={expandBox}>
-                                <h4>💬 Chat</h4>
-
-                                <div style={chatBox}>
-                                  {(task.comments || []).map((c, i) => {
-                                    const isManager = c.sender === "manager";
-                                    return (
-                                      <div
-                                        key={i}
-                                        style={{
-                                          alignSelf: isManager ? "flex-end" : "flex-start",
-                                          background: isManager ? "#2563eb" : "#e5e7eb",
-                                          color: isManager ? "#fff" : "#000",
-                                          padding: "8px 12px",
-                                          borderRadius: "12px",
-                                          maxWidth: "60%"
-                                        }}
-                                      >
-                                        <div style={{ fontSize: 12, opacity: 0.7 }}>
-                                          {isManager ? "You" : "Employee"}
-                                        </div>
-                                        <div>{c.text}</div>
-                                        <div style={{ fontSize: 10, opacity: 0.6 }}>
-                                          {c.timestamp?.toDate?.().toLocaleString?.()}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                  <div ref={chatEndRef} />
-                                </div>
-
-                                <div style={{ display: "flex", gap: 10 }}>
-                                  <input
-                                    style={input}
-                                    placeholder="Type message..."
-                                    value={commentInputs[task.id] || ""}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        handleComment(task.id);
-                                      }
-                                    }}
-                                    onChange={(e) =>
-                                      setCommentInputs({
-                                        ...commentInputs,
-                                        [task.id]: e.target.value
-                                      })
-                                    }
-                                  />
-                                  <button
-                                    style={sendBtn}
-                                    onClick={() => handleComment(task.id)}
-                                  >
-                                    Send
-                                  </button>
-                                </div>
-                              </div>
+                            <td>
+                              <select
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => {
+                                  handleAction(e.target.value, task);
+                                  e.target.value = "";
+                                }}
+                              >
+                                <option value="">Actions</option>
+                                <option value="counter">Send Counter</option>
+                                <option value="approveNegotiation">Approve Negotiation</option>
+                                <option value="approveDelivery">Approve Delivery</option>
+                                <option value="revision">Request Revision</option>
+                                <option value="payment">Add Payment</option>
+                                <option value="reassign">Reassign</option>
+                                <option value="cancel">Cancel</option>
+                                <option value="delete">Delete</option>
+                              </select>
                             </td>
                           </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
+
+                          {isOpen && (
+                            <tr>
+                              <td colSpan="11">
+                                <div style={expandBox}>
+                                  {/* 📌 TASK DETAILS */}
+                                  <div style={{ marginBottom: 20 }}>
+                                    <h4>📌 Task Details</h4>
+                                    <div><b>Description:</b> {task.description || "-"}</div>
+                                    <div><b>Status:</b> {progress}</div>
+                                    <div><b>Deadline:</b> {task.deadline ? new Date(task.deadline).toLocaleDateString() : "-"}</div>
+                                    <div><b>Submission Link:</b> {task.submissionLink ? (
+                                      <a href={task.submissionLink} target="_blank" rel="noopener noreferrer">View</a>
+                                    ) : "Not submitted yet"}</div>
+                                  </div>
+
+                                  {/* 💬 CHAT */}
+                                  <h4>💬 Chat</h4>
+                                  <div style={chatBox}>
+                                    {(task.comments || []).map((c, i) => {
+                                      const isManager = c.sender === "manager";
+                                      return (
+                                        <div
+                                          key={i}
+                                          style={{
+                                            alignSelf: isManager ? "flex-end" : "flex-start",
+                                            background: isManager ? "#2563eb" : "#e5e7eb",
+                                            color: isManager ? "#fff" : "#000",
+                                            padding: "8px 12px",
+                                            borderRadius: "12px",
+                                            maxWidth: "60%"
+                                          }}
+                                        >
+                                          <div style={{ fontSize: 12, opacity: 0.7 }}>
+                                            {isManager ? "You" : "Employee"}
+                                          </div>
+                                          <div>{c.text}</div>
+                                          <div style={{ fontSize: 10, opacity: 0.6 }}>
+                                            {c.timestamp?.toDate?.().toLocaleString?.()}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    <div ref={chatEndRef} />
+                                  </div>
+
+                                  <div style={{ display: "flex", gap: 10 }}>
+                                    <input
+                                      style={input}
+                                      placeholder="Type message..."
+                                      value={commentInputs[task.id] || ""}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          handleComment(task.id);
+                                        }
+                                      }}
+                                      onChange={(e) =>
+                                        setCommentInputs({
+                                          ...commentInputs,
+                                          [task.id]: e.target.value
+                                        })
+                                      }
+                                    />
+                                    <button style={sendBtn} onClick={() => handleComment(task.id)}>
+                                      Send
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         ))}
@@ -485,10 +486,7 @@ export default function Tasks() {
       {showReassignModal && (
         <div style={modalOverlay}>
           <div style={modalBox}>
-            <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-            >
+            <select value={selectedEmployee} onChange={(e) => setSelectedEmployee(e.target.value)}>
               <option>Select Employee</option>
               {employees.map((e) => (
                 <option key={e.uid} value={e.uid}>
@@ -496,7 +494,6 @@ export default function Tasks() {
                 </option>
               ))}
             </select>
-
             <button onClick={handleReassign}>Confirm</button>
           </div>
         </div>
@@ -505,7 +502,7 @@ export default function Tasks() {
   );
 }
 
-// ===============================
+const tableWrapper = { width: "100%", overflowX: "auto" };
 const table = { width: "100%", borderCollapse: "collapse", background: "#fff" };
 const row = { borderBottom: "1px solid #eee", cursor: "pointer" };
 

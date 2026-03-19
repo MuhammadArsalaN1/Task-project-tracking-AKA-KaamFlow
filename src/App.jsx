@@ -1,25 +1,27 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 
-// Dashboards
+// ================= DASHBOARDS =================
 import ManagerDashboard from "./dashboard/manager/ManagerDashboard";
 import EmployeeDashboard from "./dashboard/employee/EmployeeDashboard";
 
-// Manager Features
+// ================= MANAGER FEATURES =================
 import CreateTask from "./dashboard/manager/CreateTask";
 import Tasks from "./dashboard/manager/Tasks";
+import Employees from "./dashboard/manager/Employees"; // 🔥 FIXED PATH
 
-// Employee Features
+// ================= EMPLOYEE FEATURES =================
 import EmployeeTasks from "./dashboard/employee/EmployeeTasks";
-import Earnings from "./dashboard/employee/Earnings"; // ✅ ADD THIS
+import Earnings from "./dashboard/employee/Earnings";
 
-// Protection
+// ================= PROTECTION =================
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
-      {/* 🔐 Auth */}
+
+      {/* 🔐 AUTH */}
       <Route path="/" element={<AuthPage />} />
 
       {/* ================= MANAGER ================= */}
@@ -51,6 +53,16 @@ function App() {
         }
       />
 
+      {/* 🔥 EMPLOYEE MANAGEMENT PAGE */}
+      <Route
+        path="/manager/employees"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <Employees />
+          </ProtectedRoute>
+        }
+      />
+
       {/* ================= EMPLOYEE ================= */}
 
       <Route
@@ -71,7 +83,6 @@ function App() {
         }
       />
 
-      {/* 💰 Earnings (REAL-TIME FIREBASE) */}
       <Route
         path="/employee/earnings"
         element={
@@ -84,6 +95,7 @@ function App() {
       {/* ================= FALLBACK ================= */}
 
       <Route path="*" element={<Navigate to="/" />} />
+
     </Routes>
   );
 }
